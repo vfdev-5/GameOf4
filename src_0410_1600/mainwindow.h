@@ -2,8 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-//#include "glwidget.h"
-#include "graphicstools.h"
+#include "glwidget.h"
 
 
 namespace Ui {
@@ -13,11 +12,11 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    //GLWidget * _gameplay;
-    GraphicsScene::GameType _type;
+    GLWidget * _gameplay;
+    GLWidget::GameType _type;
 
-    GraphicsScene * _gamePlayScene;
-    GraphicsView * _gamePlayView;
+    QGraphicsScene * _graphicsScene;
+    QGraphicsView * _graphicsView;
 
 
 public:
@@ -29,10 +28,6 @@ private slots:
     void on_startButton_clicked();
 
     void onGamePlayExit();
-
-    void on_comboBox_currentIndexChanged(int index);
-
-    void on_swapB_clicked();
 
 private:
     Ui::MainWindow *ui;

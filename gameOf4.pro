@@ -4,17 +4,25 @@ QT += gui core opengl
 
 HEADERS += \
     src/mainwindow.h \
-    src/glwidget.h \
-    src/gameset.h
+    src/gameset.h \
+    src/graphicstools.h \
+    src/dialogmenu.h \
+    src/computerplayer.h
 
 SOURCES += \
     src/mainwindow.cpp \
-    src/glwidget.cpp \
     src/main.cpp \
-    src/gameset.cpp
+    src/gameset.cpp \
+    src/graphicstools.cpp \
+    src/dialogmenu.cpp \
+    src/computerplayer.cpp
 
 FORMS += \
-    src/mainwindow.ui
+    src/mainwindow.ui \
+    src/dialogmenu.ui
+
+RESOURCES += \
+    src/ressources.qrc
 
 
 

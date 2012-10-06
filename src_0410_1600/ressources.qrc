@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="bg">data/bg.jpg</file>
+    </qresource>
+</RCC>

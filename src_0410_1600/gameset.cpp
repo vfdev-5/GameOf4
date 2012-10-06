@@ -14,22 +14,22 @@ void Scene::initialize()
 
     _gameStatus = 0;
 
-//    _skipButtonRect = QRect((_fieldSizeX+1.1)*_cellSize, (_fieldSizeY+1)*_cellSize + _cellSize/3,_cellSize*0.7,_cellSize*0.5 );
-//    _skipButtonPushed = false;
-//    _skipButtonColor = QColor(200,200,255,120);
-//    _skipButtonColorPushed = QColor(220,220,255,150);
+    _skipButtonRect = QRect((_fieldSizeX+1.1)*_cellSize, (_fieldSizeY+1)*_cellSize + _cellSize/3,_cellSize*0.7,_cellSize*0.5 );
+    _skipButtonPushed = false;
+    _skipButtonColor = QColor(200,200,255,120);
+    _skipButtonColorPushed = QColor(220,220,255,150);
 
-//    _menuButtonRect = QRect((0.1)*_cellSize, _cellSize/3,_cellSize*0.7,_cellSize*0.5 );
-//    _menuButtonPushed = false;
-//    _menuButtonColor = QColor(200,200,255,120);
-//    _menuButtonColorPushed = QColor(220,220,255,150);
+    _menuButtonRect = QRect((0.1)*_cellSize, _cellSize/3,_cellSize*0.7,_cellSize*0.5 );
+    _menuButtonPushed = false;
+    _menuButtonColor = QColor(200,200,255,120);
+    _menuButtonColorPushed = QColor(220,220,255,150);
 
     _defaultFont = QFont("Helvetica [Cronyx]",20, QFont::Bold);
 }
 
 
 
-void Scene::draw(QPainter *_painter)
+void Scene::draw()
 {
     // draw backgroung rectangle:
     _painter->setBrush(_backgroundBrush);
@@ -49,27 +49,27 @@ void Scene::draw(QPainter *_painter)
     }
 
     // draw 'menu' button and 'skip turn' button
-//    if (_skipButtonPushed){
-//        _painter->setBrush(_skipButtonColorPushed);
-//        _skipButtonPushed = false;
-//    }else
-//        _painter->setBrush(_skipButtonColor);
+    if (_skipButtonPushed){
+        _painter->setBrush(_skipButtonColorPushed);
+        _skipButtonPushed = false;
+    }else
+        _painter->setBrush(_skipButtonColor);
 
-//    _painter->drawRoundedRect(_skipButtonRect,20.,15.);
-//    _painter->setPen(Qt::black);
-//    _painter->drawText(_skipButtonRect, Qt::AlignCenter, "Skip turn");
+    _painter->drawRoundedRect(_skipButtonRect,20.,15.);
+    _painter->setPen(Qt::black);
+    _painter->drawText(_skipButtonRect, Qt::AlignCenter, "Skip turn");
 
 
 
-//    if (_menuButtonPushed){
-//        _painter->setBrush(_menuButtonColorPushed);
-//        _menuButtonPushed = false;
-//    }else{
-//        _painter->setBrush(_menuButtonColor);
-//    }
-//    _painter->drawRoundedRect(_menuButtonRect,20.,15.);
-//    _painter->setPen(Qt::white);
-//    _painter->drawText(_menuButtonRect, Qt::AlignCenter, "Menu");
+    if (_menuButtonPushed){
+        _painter->setBrush(_menuButtonColorPushed);
+        _menuButtonPushed = false;
+    }else{
+        _painter->setBrush(_menuButtonColor);
+    }
+    _painter->drawRoundedRect(_menuButtonRect,20.,15.);
+    _painter->setPen(Qt::white);
+    _painter->drawText(_menuButtonRect, Qt::AlignCenter, "Menu");
 
 
 
@@ -104,7 +104,8 @@ void Scene::draw(QPainter *_painter)
 
 
 // ================================== PlayersFigures ========================================
-PlayersFigures::PlayersFigures(Scene *scene)
+PlayersFigures::PlayersFigures(QPainter *painter, Scene *scene):
+    _painter(painter)
 {
     _gridStartTL = scene->getGridStartTL();
     _cellSize = scene->getCellSize();
@@ -136,16 +137,19 @@ PlayersFigures::~PlayersFigures()
 
 void PlayersFigures::initialize()
 {
+
+
     // initial disposition:
     // (fszX-1,0) coordinate:
     addFigure(RED, _fieldSizeX-1, 0);
 
     // (0, fszY-1) coordinate:
     addFigure(BLUE, 0, _fieldSizeY-1);
+
+
+
+
 }
-
-
-
 
 
 QPoint PlayersFigures::convertGridPosToPoint(int x, int y)
@@ -163,7 +167,6 @@ QPoint PlayersFigures::convertGridPosToPoint(QPoint xy)
 QPoint PlayersFigures::convertPointToGridPos(QPoint p)
 {
     cerr << "PlayersFigures::convertPointToGridPos(QPoint p)" << endl;
-    cerr << "p: " << p.x() << ", " << p.y() << endl;
     if (_playBoard.contains(p, true)){
 
         cerr << "p: " << p.x() << ", " << p.y() << endl;
@@ -173,7 +176,7 @@ QPoint PlayersFigures::convertPointToGridPos(QPoint p)
         return QPoint(x,y);
 
     }else{
-        cerr << "position is outside" << endl;
+        //cerr << "position is outside" << endl;
         return QPoint(-1,-1);
     }
 
@@ -185,11 +188,11 @@ void PlayersFigures::addFigure(PlayerType type, int x, int y)
 {
 
     if (type==RED){
-        Figure * pos1 = new SimpleFigure(0, _cellSize, convertGridPosToPoint(x,y));
+        Figure * pos1 = new SimpleFigure(0, _cellSize, _painter, convertGridPosToPoint(x,y));
         int index = uniqueIndex(x,y);
         _player1.insert(index, pos1);
     }else if (type ==BLUE){
-        Figure * pos1 = new SimpleFigure(1, _cellSize, convertGridPosToPoint(x,y));
+        Figure * pos1 = new SimpleFigure(1, _cellSize, _painter, convertGridPosToPoint(x,y));
         int index = uniqueIndex(x,y);
         _player2.insert(index, pos1);
     }
@@ -198,11 +201,11 @@ void PlayersFigures::addFigure(PlayerType type, int x, int y)
 void PlayersFigures::addFigure(int type, QPoint p)
 {
     if (type==0){ // red
-        Figure * pos1 = new SimpleFigure(0, _cellSize, convertGridPosToPoint(p));
+        Figure * pos1 = new SimpleFigure(0, _cellSize, _painter, convertGridPosToPoint(p));
         int index = uniqueIndex(p.x(),p.y());
         _player1.insert(index, pos1);
     }else if (type ==1){ // blue
-        Figure * pos1 = new SimpleFigure(1, _cellSize, convertGridPosToPoint(p));
+        Figure * pos1 = new SimpleFigure(1, _cellSize, _painter, convertGridPosToPoint(p));
         int index = uniqueIndex(p.x(),p.y());
         _player2.insert(index, pos1);
     }
@@ -221,7 +224,7 @@ void PlayersFigures::deleteFigure(int type, QPoint p)
 }
 
 
-void PlayersFigures::draw(QPainter *_painter)
+void PlayersFigures::draw()
 {
 
 
@@ -229,13 +232,13 @@ void PlayersFigures::draw(QPainter *_painter)
     // _player1 :
     QHash<int, Figure *>::iterator iter1 = _player1.begin();
     for (; iter1!=_player1.end();iter1++){
-        (*iter1)->draw(_painter);
+        (*iter1)->draw();
     }
 
     // _player2 :
     QHash<int, Figure *>::iterator iter2 = _player2.begin();
     for (; iter2!=_player2.end();iter2++){
-        (*iter2)->draw(_painter);
+        (*iter2)->draw();
 
     }
 
@@ -250,28 +253,6 @@ void PlayersFigures::draw(QPainter *_painter)
 GameRules::GameRules(int fx, int fy, PlayersFigures *figures):
     _fieldSizeX(fx), _fieldSizeY(fy), _figures(figures)
 {
-    reset();
-}
-
-
-GameRules::~GameRules()
-{
-    _grid.clear();
-}
-
-
-void GameRules::initialize()
-{
-    // set initial warriors:
-    _grid[_fieldSizeX-1][0] = 0; // red
-    _grid[0][_fieldSizeY-1] = 1; // blue
-    _figures->initialize();
-}
-
-void GameRules::reset()
-{
-    _grid.clear();
-
     _grid.resize(_fieldSizeX);
     // initialize the grid:
     for (int i=0;i<_fieldSizeX;i++){
@@ -283,15 +264,21 @@ void GameRules::reset()
 
     //
     justDeletedFigure = QPoint(-1,-1);
-    //
-    lastMove.clear();
 
-    // reset figures:
-    _figures->_player1.clear();
-    _figures->_player2.clear();
+}
 
-    initialize();
 
+GameRules::~GameRules()
+{
+}
+
+
+void GameRules::initialize()
+{
+    // set initial warriors:
+    _grid[_fieldSizeX-1][0] = 0; // red
+    _grid[0][_fieldSizeY-1] = 1; // blue
+    _figures->initialize();
 }
 
 
@@ -300,25 +287,15 @@ bool GameRules::addFigure(int type, QPoint p)
 
     if (isInside(p)){
         if (isFree(p)){
-
-            // store previous cell info:
-            lastMove.append(LastMoveType(LastMoveTypePoint(p,_grid[p.x()][p.y()]), justDeletedFigure));
-
             _grid[p.x()][p.y()] = type;
             _figures->addFigure(type, p);
             justDeletedFigure = QPoint(-1,-1);
-
             displayGrid();
             return true;
         }else{
             cerr << "grid is occupied" << endl;
             // type is the color of figure user want to place
             if (canBeatOpponentFigure(type, p.x(),p.y()) && p != justDeletedFigure){
-
-                // store previous cell info:
-                lastMove.append(LastMoveType(LastMoveTypePoint(p,_grid[p.x()][p.y()]), justDeletedFigure));
-
-
                 _grid[p.x()][p.y()] = type;
                 _figures->deleteFigure((type+1)%2,p);
                 justDeletedFigure = p;
@@ -334,26 +311,6 @@ bool GameRules::addFigure(int type, QPoint p)
 }
 
 
-void GameRules::undoLastMove()
-{
-    cerr << "GameRules::undoLastMove()" << endl;
-    QPoint p = lastMove.last().first.first;
-    int prevType = lastMove.last().first.second;
-    int currType = _grid[p.x()][p.y()];
-    justDeletedFigure = lastMove.last().second;
-
-    _figures->deleteFigure(currType,p);
-    if (prevType != -1){
-        _figures->addFigure(prevType, p);
-    }
-
-    _grid[p.x()][p.y()] = prevType;
-
-    lastMove.pop_back();
-
-}
-
-
 
 
 // ----- rules:
@@ -365,7 +322,7 @@ void GameRules::undoLastMove()
 */
 bool GameRules::canBeatOpponentFigure(int type, int x, int y)
 {
-    if (_grid[x][y] == type || _grid[x][y] == -1)
+    if (_grid[x][y] == type) // empty cells are already neglected
         return false;
 
     // _grid[x][y] = (type + 1) % 2 // opposite type

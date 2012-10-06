@@ -5,8 +5,6 @@
 #include <QHash>
 #include <QVector>
 
-#include "computerplayer.h"
-
 #include <iostream>
 using namespace std;
 
@@ -14,6 +12,7 @@ using namespace std;
 // ------------------- Scene ------------------------------------
 class Scene
 {
+    QPainter * _painter;
     QSize _size;  // size of the Widget
 
     QBrush _backgroundBrush;
@@ -46,7 +45,8 @@ class Scene
 
 
 public:
-    Scene(QSize size, QPoint gstart, int cellSize, int fszX, int fszY) :
+    Scene(QPainter * painter, QSize size, QPoint gstart, int cellSize, int fszX, int fszY) :
+        _painter(painter),
         _size(size),
         _gridStartTL(gstart),
         _cellSize(cellSize),
@@ -55,7 +55,7 @@ public:
     {}
 
     void initialize();
-    void draw(QPainter * _painter);
+    void draw();
 
 
     inline QPoint getGridStartTL() {return _gridStartTL;}
@@ -64,15 +64,14 @@ public:
     inline int getFieldSizeY() {return _fieldSizeY;}
 
     inline int getGameStatus() {return _gameStatus;}
-    inline void setGameStatus(int status) {_gameStatus = status;}    
+    inline void setGameStatus(int status) {_gameStatus = status;}
+    inline void nextTurn() {_gameStatus = (_gameStatus+1) % 2;}
     inline void setWinner(int w) {_winner = w;}
 
     inline QRect getSkipButtonRect() {return _skipButtonRect;}
     inline void setSkipButtonPushedStatus(bool status) {_skipButtonPushed = status;}
     inline QRect getMenuButtonRect() {return _menuButtonRect;}
     inline void setMenuButtonPushedStatus(bool status) {_menuButtonPushed = status;}
-
-    void nextTurn() {_gameStatus = (_gameStatus+1) % 2;}
 
 private:
 
@@ -83,17 +82,15 @@ private:
 class Figure
 {
 protected:
-
+    QPainter * _painter;
     QPoint _position;
 
 public:
-    Figure(QPoint position) :
-        _position(position)
+    Figure(QPainter * painter, QPoint position) :
+        _painter(painter), _position(position)
     {}
     virtual ~Figure(){}
-    virtual void draw(QPainter * _painter) = 0;
-
-    inline QPoint & getPosition() {return _position;}
+    virtual void draw() = 0;
 };
 
 class SimpleFigure : public Figure
@@ -106,8 +103,8 @@ class SimpleFigure : public Figure
     QPen _itemPen;
 
 public:
-    SimpleFigure(int playerType,int cs, QPoint position) :
-        Figure(position), _cellSize(cs), _playerType(playerType)
+    SimpleFigure(int playerType,int cs, QPainter * painter, QPoint position) :
+        Figure(painter, position), _cellSize(cs), _playerType(playerType)
     {
         // set players' items properties:
         float rad = _cellSize/2 - _cellSize/10;
@@ -124,7 +121,7 @@ public:
         _itemPen = QPen(Qt::black);
     }
     ~SimpleFigure(){}
-    virtual void draw(QPainter * _painter){
+    virtual void draw(){
         _painter->setPen(_itemPen);
         _painter->setBrush(_itemBrush);
         int rad = _cellSize/2 - _cellSize/10;
@@ -138,7 +135,7 @@ class GameRules;
 
 class PlayersFigures
 {
-
+    QPainter * _painter;
     QPoint _gridStartTL;
     int _cellSize;
     int _fieldSizeX;
@@ -152,12 +149,12 @@ class PlayersFigures
 
 public:
     enum PlayerType {RED, BLUE};
-    PlayersFigures(Scene *scene);
+    PlayersFigures(QPainter * painter, Scene * scene);
     ~PlayersFigures();
 
 
 
-    void draw(QPainter * _painter);
+    void draw();
 
 
     QPoint convertGridPosToPoint(int x, int y); // convert grid position to QPoint
@@ -167,9 +164,6 @@ public:
     int uniqueIndex(int x, int y){ return x + y*_fieldSizeX;}
 
     inline int getTotalNumberOfFigures(){return _player1.size() + _player2.size();}
-    inline int getNumberOfRedFigures(){return _player1.size();}
-    inline int getNumberOfBlueFigures(){return _player2.size();}
-
     inline int getWinner() {
         if (_player1.size() > _player2.size())
             return 0; // red
@@ -180,18 +174,13 @@ public:
     }
     inline int getSurfaceOfPlayboard(){return _fieldSizeX * _fieldSizeY;}
 
-
-
 private:
     void initialize();
     void addFigure(PlayerType type, int x, int y);
     void addFigure(int type, QPoint p); // p is the point on the grid
     void deleteFigure(int type, QPoint p);
 
-
-
     friend class GameRules;
-    //friend class ComputerPlayer;
 
 };
 
@@ -212,9 +201,6 @@ class GameRules
     PlayersFigures * _figures;
 
 
-    typedef QPair<QPoint, int> LastMoveTypePoint;
-    typedef QPair<LastMoveTypePoint, QPoint> LastMoveType;
-    QVector<LastMoveType>  lastMove; // to store the last moves and types and to enable undoLastMove. Stores previous point and its type and the point of justDeletedFigure
     QPoint justDeletedFigure; // for the special rule that if e.g. blue's figure has been beaten with a red one, but it can be beaten on the next turn with the blue figure -> dead-lock. The rule is to forbidden this move
 
 public:
@@ -223,12 +209,9 @@ public:
 
 
     void initialize();
-    void reset();
     bool addFigure(int type, QPoint p);  // p is the point on the grid
 
     bool gameIsFinished();
-
-    void undoLastMove();
 
     // for debugs:
     void displayGrid();
@@ -242,9 +225,6 @@ private:
 
     bool canBeatOpponentFigure(int type, int x, int y);
     QVector<QPoint> checkForFigureToBeTaken(int type);
-
-
-    friend class ComputerPlayer;
 
 };
 
