@@ -2,7 +2,7 @@
 
 1) DONE . make a menu -> probably, change the concept and use QGraphicsScene and QGraphicsView
 
-2) think about HumainVsPC mode and realize some AI 
+2) DONE . think about HumainVsPC mode and realize some AI 
 
 3) Network option for HeadToHead mode
 
